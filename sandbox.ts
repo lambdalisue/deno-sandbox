@@ -5,11 +5,14 @@ export type SandboxOptions = Deno.MakeTempOptions;
 class Sandbox implements Disposable {
   readonly root: string;
 
+  #previousCwd: string;
   #resources: Deno.Closer[];
 
-  constructor(path: string) {
-    this.root = path;
+  constructor(root: string) {
+    this.root = path.resolve(root);
+    this.#previousCwd = Deno.cwd();
     this.#resources = [];
+    Deno.chdir(this.root);
   }
 
   /**
@@ -149,6 +152,7 @@ class Sandbox implements Disposable {
         // Do nothing while this is cleanup
       }
     });
+    Deno.chdir(this.#previousCwd);
   }
 }
 

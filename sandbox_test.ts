@@ -1,5 +1,5 @@
 import { fs, path } from "./deps.ts";
-import { assert, assertEquals, using } from "./deps_test.ts";
+import { assert, assertEquals, assertNotEquals, using } from "./deps_test.ts";
 import { sandbox } from "./sandbox.ts";
 
 Deno.test({
@@ -18,6 +18,24 @@ Deno.test({
       !(await fs.exists(sbox.root)),
       "sandbox directory must be removed",
     );
+  },
+});
+
+Deno.test({
+  name: "sandbox() changes cwd until disposed",
+  fn: async () => {
+    const cwd = Deno.cwd();
+    const sbox = await sandbox();
+    const root = Deno.realPathSync(sbox.root);
+
+    assertNotEquals(Deno.cwd(), cwd);
+    assertEquals(Deno.cwd(), root);
+
+    // using automatically call `dispose()` method of the resouce
+    await using(sbox, async () => {});
+
+    assertEquals(Deno.cwd(), cwd);
+    assertNotEquals(Deno.cwd(), root);
   },
 });
 
