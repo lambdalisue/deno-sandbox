@@ -8,6 +8,9 @@ class Sandbox implements Disposable {
   #previousCwd: string;
   #resources: Deno.Closer[];
 
+  // Show debug messages
+  debug = false;
+
   constructor(root: string) {
     this.root = path.resolve(root);
     this.#previousCwd = Deno.cwd();
@@ -142,13 +145,19 @@ class Sandbox implements Disposable {
   dispose(): void {
     try {
       Deno.removeSync(this.root, { recursive: true });
-    } catch {
+    } catch (e) {
+      if (this.debug) {
+        console.warn("failed to remove sandbox directory", e);
+      }
       // Do nothing while this is cleanup
     }
     this.#resources.forEach((r) => {
       try {
         r.close();
-      } catch {
+      } catch (e) {
+        if (this.debug) {
+          console.warn("failed to close resource", e, r);
+        }
         // Do nothing while this is cleanup
       }
     });

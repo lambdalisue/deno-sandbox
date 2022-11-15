@@ -6,6 +6,7 @@ Deno.test({
   name: "sandbox() returns a Sandbox instance which is disposable",
   fn: async () => {
     const sbox = await sandbox();
+    sbox.debug = true;
     assert(
       await fs.exists(sbox.root),
       "sandbox directory must be created",
