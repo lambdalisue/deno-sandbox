@@ -45,7 +45,7 @@ class Sandbox implements Disposable {
     return Deno.copyFile(this.resolve(fromPath), this.resolve(toPath));
   }
 
-  async create(path: string): Promise<Deno.File> {
+  async create(path: string): Promise<Deno.FsFile> {
     const f = await Deno.create(this.resolve(path));
     this.#resources.push(f);
     return f;
@@ -77,7 +77,7 @@ class Sandbox implements Disposable {
     return Deno.mkdir(this.resolve(path), options);
   }
 
-  async open(path: string, options?: Deno.OpenOptions): Promise<Deno.File> {
+  async open(path: string, options?: Deno.OpenOptions): Promise<Deno.FsFile> {
     const f = await Deno.open(this.resolve(path), options);
     this.#resources.push(f);
     return f;
