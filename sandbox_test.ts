@@ -62,6 +62,7 @@ Deno.test({
 });
 
 Deno.test({
+  ignore: Deno.build.os == "windows",
   name:
     "Sandbox.chmod() invokes corresponding method of Deno in a sandbox directory",
   fn: async () => {
@@ -120,6 +121,7 @@ Deno.test({
 });
 
 Deno.test({
+  ignore: Deno.build.os == "windows",
   name:
     "Sandbox.link() invokes corresponding method of Deno in a sandbox directory",
   fn: async () => {
