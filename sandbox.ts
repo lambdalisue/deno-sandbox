@@ -8,6 +8,9 @@ class Sandbox implements Disposable {
   #previousCwd: string;
   #resources: Deno.Closer[];
 
+  // Show debug messages
+  debug = false;
+
   constructor(root: string) {
     this.root = path.resolve(root);
     this.#previousCwd = Deno.cwd();
@@ -45,7 +48,7 @@ class Sandbox implements Disposable {
     return Deno.copyFile(this.resolve(fromPath), this.resolve(toPath));
   }
 
-  async create(path: string): Promise<Deno.File> {
+  async create(path: string): Promise<Deno.FsFile> {
     const f = await Deno.create(this.resolve(path));
     this.#resources.push(f);
     return f;
@@ -77,7 +80,7 @@ class Sandbox implements Disposable {
     return Deno.mkdir(this.resolve(path), options);
   }
 
-  async open(path: string, options?: Deno.OpenOptions): Promise<Deno.File> {
+  async open(path: string, options?: Deno.OpenOptions): Promise<Deno.FsFile> {
     const f = await Deno.open(this.resolve(path), options);
     this.#resources.push(f);
     return f;
@@ -140,19 +143,25 @@ class Sandbox implements Disposable {
   }
 
   dispose(): void {
+    Deno.chdir(this.#previousCwd);
     try {
       Deno.removeSync(this.root, { recursive: true });
-    } catch {
+    } catch (e) {
+      if (this.debug) {
+        console.warn("failed to remove sandbox directory", e);
+      }
       // Do nothing while this is cleanup
     }
     this.#resources.forEach((r) => {
       try {
         r.close();
-      } catch {
+      } catch (e) {
+        if (this.debug) {
+          console.warn("failed to close resource", e, r);
+        }
         // Do nothing while this is cleanup
       }
     });
-    Deno.chdir(this.#previousCwd);
   }
 }
 

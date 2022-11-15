@@ -6,6 +6,7 @@ Deno.test({
   name: "sandbox() returns a Sandbox instance which is disposable",
   fn: async () => {
     const sbox = await sandbox();
+    sbox.debug = true;
     assert(
       await fs.exists(sbox.root),
       "sandbox directory must be created",
@@ -62,6 +63,7 @@ Deno.test({
 });
 
 Deno.test({
+  ignore: Deno.build.os == "windows",
   name:
     "Sandbox.chmod() invokes corresponding method of Deno in a sandbox directory",
   fn: async () => {
@@ -120,6 +122,7 @@ Deno.test({
 });
 
 Deno.test({
+  ignore: Deno.build.os == "windows",
   name:
     "Sandbox.link() invokes corresponding method of Deno in a sandbox directory",
   fn: async () => {
