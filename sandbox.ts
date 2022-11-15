@@ -143,6 +143,7 @@ class Sandbox implements Disposable {
   }
 
   dispose(): void {
+    Deno.chdir(this.#previousCwd);
     try {
       Deno.removeSync(this.root, { recursive: true });
     } catch (e) {
@@ -161,7 +162,6 @@ class Sandbox implements Disposable {
         // Do nothing while this is cleanup
       }
     });
-    Deno.chdir(this.#previousCwd);
   }
 }
 
