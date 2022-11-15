@@ -49,6 +49,12 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: "${{ matrix.version }}"
+      - name: Fix TMP/TEMP issue on Windows
+        if: runner.os == 'Windows'
+        run: |
+          # https://github.com/actions/runner-images/issues/712
+          echo "TMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
+          echo "TEMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
       - name: Test
         run: |
           make test
