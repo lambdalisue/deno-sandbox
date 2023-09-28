@@ -2,9 +2,9 @@ import {
   assert,
   assertEquals,
   assertNotEquals,
-} from "https://deno.land/std@0.186.0/testing/asserts.ts";
-import * as path from "https://deno.land/std@0.186.0/path/mod.ts";
-import * as fs from "https://deno.land/std@0.186.0/fs/mod.ts";
+} from "https://deno.land/std@0.203.0/testing/asserts.ts";
+import * as path from "https://deno.land/std@0.203.0/path/mod.ts";
+import * as fs from "https://deno.land/std@0.203.0/fs/mod.ts";
 import { using } from "https://deno.land/x/disposable@v1.1.1/mod.ts";
 import { sandbox } from "./sandbox.ts";
 
