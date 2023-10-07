@@ -16,9 +16,9 @@ that the sandbox temporary directory is cleaned up.
 
 ```typescript
 import { sandbox } from "https://deno.land/x/sandbox/mod.ts";
-import { using } from "https://deno.land/x/disposable/mod.ts";
+import { usingResource } from "https://deno.land/x/disposable/mod.ts";
 
-await using(await sandbox(), async (sbox) => {
+await usingResource(await sandbox(), async (sbox) => {
   // Create a file 'foo' in the sandbox
   const f = await sbox.create("foo");
   // Do what ever you want
