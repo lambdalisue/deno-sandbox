@@ -1,8 +1,14 @@
-import type { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts";
-import * as path from "https://deno.land/std@0.186.0/path/mod.ts";
-import * as fs from "https://deno.land/std@0.186.0/fs/mod.ts";
+import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
+import * as path from "https://deno.land/std@0.203.0/path/mod.ts";
+import * as fs from "https://deno.land/std@0.203.0/fs/mod.ts";
 
 export type SandboxOptions = Deno.MakeTempOptions;
+
+// Support `using` in TypeScript 5.2
+// deno-lint-ignore no-explicit-any
+const dispose = "dispose" in (Symbol as any)
+  ? Symbol.dispose
+  : Symbol("dispose");
 
 class Sandbox implements Disposable {
   readonly root: string;
@@ -165,6 +171,10 @@ class Sandbox implements Disposable {
       }
     });
   }
+
+  [dispose](): void {
+    this.dispose();
+  }
 }
 
 /**
@@ -173,6 +183,16 @@ class Sandbox implements Disposable {
  */
 export async function sandbox(options: SandboxOptions = {}): Promise<Sandbox> {
   const path = await Deno.makeTempDir(options);
+  const sbox = new Sandbox(path);
+  return sbox;
+}
+
+/**
+ * Create a temporary directory and return a Sandbox instance which manipulate
+ * file/directory entries in the temporary directory
+ */
+export function sandboxSync(options: SandboxOptions = {}): Sandbox {
+  const path = Deno.makeTempDirSync(options);
   const sbox = new Sandbox(path);
   return sbox;
 }
