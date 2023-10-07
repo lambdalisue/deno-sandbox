@@ -4,6 +4,12 @@ import * as fs from "https://deno.land/std@0.203.0/fs/mod.ts";
 
 export type SandboxOptions = Deno.MakeTempOptions;
 
+// Support `using` in TypeScript 5.2
+// deno-lint-ignore no-explicit-any
+const dispose = "dispose" in (Symbol as any)
+  ? Symbol.dispose
+  : Symbol("dispose");
+
 class Sandbox implements Disposable {
   readonly root: string;
 
@@ -164,6 +170,10 @@ class Sandbox implements Disposable {
         // Do nothing while this is cleanup
       }
     });
+  }
+
+  [dispose](): void {
+    this.dispose();
   }
 }
 
