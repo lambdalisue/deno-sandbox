@@ -187,4 +187,14 @@ export async function sandbox(options: SandboxOptions = {}): Promise<Sandbox> {
   return sbox;
 }
 
+/**
+ * Create a temporary directory and return a Sandbox instance which manipulate
+ * file/directory entries in the temporary directory
+ */
+export function sandboxSync(options: SandboxOptions = {}): Sandbox {
+  const path = Deno.makeTempDirSync(options);
+  const sbox = new Sandbox(path);
+  return sbox;
+}
+
 export type { Sandbox };
