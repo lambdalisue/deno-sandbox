@@ -1,6 +1,6 @@
 import type { Disposable } from "https://deno.land/x/disposable@v1.2.0/mod.ts";
-import * as path from "https://deno.land/std@0.203.0/path/mod.ts";
-import * as fs from "https://deno.land/std@0.203.0/fs/mod.ts";
+import * as path from "https://deno.land/std@0.224.0/path/mod.ts";
+import * as fs from "https://deno.land/std@0.224.0/fs/mod.ts";
 
 export type SandboxOptions = Deno.MakeTempOptions;
 
