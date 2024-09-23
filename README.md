@@ -2,7 +2,7 @@
 
 [![JSR](https://jsr.io/badges/@lambdalisue/sandbox)](https://jsr.io/@lambdalisue/sandbox)
 [![Test](https://github.com/lambdalisue/deno-sandbox/workflows/Test/badge.svg)](https://github.com/lambdalisue/deno-sandbox/actions?query=workflow%3ATest)
-[![Codecov](https://codecov.io/gh/lambdalisue/deno-sandbox/graph/badge.svg?token=O0cA5Xj5la)](https://codecov.io/gh/lambdalisue/deno-sandbox)
+[![codecov](https://codecov.io/gh/lambdalisue/deno-sandbox/graph/badge.svg?token=AEZJlup3Et)](https://codecov.io/gh/lambdalisue/deno-sandbox)
 
 This module provides `sandbox()` and `sandboxSync()` function to create a
 temporary sandbox directory and temporary move into it.
