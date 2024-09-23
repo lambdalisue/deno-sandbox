@@ -1,8 +1,36 @@
 {
-  "lock": false,
+  "name": "@lambdalisue/sandbox",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "publish": {
+    "include": [
+      "**/*.ts",
+      "README.md",
+      "LICENSE"
+    ],
+    "exclude": [
+      "**/*_test.ts",
+      "**/*_bench.ts",
+      ".*"
+    ]
+  },
+  "exclude": [
+    ".coverage/**"
+  ],
   "tasks": {
-    "test": "deno test --unstable -A --parallel",
-    "check": "deno check --unstable $(find . -name '*.ts')",
-    "upgrade": "deno run -A https://deno.land/x/udd/main.ts $(find . -name '*.ts')"
+    "check": "deno check ./**/*.ts",
+    "test": "deno test -A --parallel --shuffle --doc",
+    "test:coverage": "deno task test --coverage=.coverage",
+    "coverage": "deno coverage .coverage --exclude=testdata/",
+    "update": "deno run --allow-env --allow-read --allow-write=. --allow-run=git,deno --allow-net=deno.land,jsr.io,registry.npmjs.org jsr:@molt/cli ./**/*.ts",
+    "update:write": "deno task -q update --write",
+    "update:commit": "deno task -q update --commit --prefix :package: --pre-commit=fmt,lint"
+  },
+  "imports": {
+    "@lambdalisue/sandbox": "./mod.ts",
+    "@std/assert": "jsr:@std/assert@^1.0.5",
+    "@std/fs": "jsr:@std/fs@^1.0.3"
   }
 }
