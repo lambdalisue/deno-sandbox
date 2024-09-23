@@ -1,4 +1,24 @@
 {
+  "name": "@lambdalisue/sandbox",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "publish": {
+    "include": [
+      "**/*.ts",
+      "README.md",
+      "LICENSE"
+    ],
+    "exclude": [
+      "**/*_test.ts",
+      "**/*_bench.ts",
+      ".*"
+    ]
+  },
+  "exclude": [
+    ".coverage/**"
+  ],
   "tasks": {
     "check": "deno check ./**/*.ts",
     "test": "deno test -A --parallel --shuffle --doc",
