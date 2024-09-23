@@ -5,7 +5,7 @@ import {
   assertRejects,
 } from "@std/assert";
 import { existsSync } from "@std/fs/exists";
-import { sandbox } from "./sandbox.ts";
+import { sandbox, sandboxSync } from "./sandbox.ts";
 
 function assertExists(path: string) {
   assert(existsSync(path), `${path} must exist`);
@@ -37,6 +37,33 @@ Deno.test({
     assertNotEquals(cwd(), sbox.origin);
 
     await sbox[Symbol.asyncDispose]();
+    assertNotEquals(cwd(), sbox.path);
+    assertEquals(cwd(), sbox.origin);
+  },
+});
+
+Deno.test({
+  name:
+    "sandboxSync() creates a sandbox directory and that directory is removed when disposed",
+  fn: () => {
+    using sbox = sandboxSync();
+    assertExists(sbox.path);
+
+    sbox[Symbol.dispose]();
+    assertNotExists(sbox.path);
+  },
+});
+
+Deno.test({
+  name:
+    "sandboxSync() changes the current working directory to the sandbox directory and back when disposed",
+  fn: () => {
+    const cwd = () => Deno.realPathSync(Deno.cwd());
+    using sbox = sandboxSync();
+    assertEquals(cwd(), sbox.path);
+    assertNotEquals(cwd(), sbox.origin);
+
+    sbox[Symbol.dispose]();
     assertNotEquals(cwd(), sbox.path);
     assertEquals(cwd(), sbox.origin);
   },
