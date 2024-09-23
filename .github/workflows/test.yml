@@ -4,18 +4,17 @@ env:
   DENO_VERSION: 1.x
 
 on:
-  schedule:
-    - cron: "0 7 * * 0"
   push:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1
         with:
           deno-version: ${{ env.DENO_VERSION }}
@@ -30,11 +29,29 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1
         with:
           deno-version: ${{ env.DENO_VERSION }}
       - name: Test
         run: |
-          deno task test
+          deno task test:coverage
         timeout-minutes: 5
+      - run: |
+          deno task coverage --lcov > coverage.lcov
+      - uses: codecov/codecov-action@v4
+        with:
+          os: ${{ runner.os }}
+          files: ./coverage.lcov
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  jsr-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+      - name: Publish (dry-run)
+        run: |
+          deno publish --dry-run
