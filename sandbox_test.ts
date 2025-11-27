@@ -1,9 +1,4 @@
-import {
-  assert,
-  assertEquals,
-  assertNotEquals,
-  assertRejects,
-} from "@std/assert";
+import { assert, assertEquals, assertRejects } from "@std/assert";
 import { existsSync } from "@std/fs/exists";
 import { sandbox, sandboxSync } from "./sandbox.ts";
 
@@ -29,21 +24,6 @@ Deno.test({
 
 Deno.test({
   name:
-    "sandbox() changes the current working directory to the sandbox directory and back when disposed",
-  fn: async () => {
-    const cwd = () => Deno.realPathSync(Deno.cwd());
-    await using sbox = await sandbox();
-    assertEquals(cwd(), sbox.path);
-    assertNotEquals(cwd(), sbox.origin);
-
-    await sbox[Symbol.asyncDispose]();
-    assertNotEquals(cwd(), sbox.path);
-    assertEquals(cwd(), sbox.origin);
-  },
-});
-
-Deno.test({
-  name:
     "sandboxSync() creates a sandbox directory and that directory is removed when disposed",
   fn: () => {
     using sbox = sandboxSync();
@@ -55,26 +35,11 @@ Deno.test({
 });
 
 Deno.test({
-  name:
-    "sandboxSync() changes the current working directory to the sandbox directory and back when disposed",
-  fn: () => {
-    const cwd = () => Deno.realPathSync(Deno.cwd());
-    using sbox = sandboxSync();
-    assertEquals(cwd(), sbox.path);
-    assertNotEquals(cwd(), sbox.origin);
-
-    sbox[Symbol.dispose]();
-    assertNotEquals(cwd(), sbox.path);
-    assertEquals(cwd(), sbox.origin);
-  },
-});
-
-Deno.test({
   name: "Deno.create() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    assertExists("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    assertExists(sbox.resolve("foo"));
   },
 });
 
@@ -82,10 +47,13 @@ Deno.test({
   ignore: Deno.build.os == "windows",
   name: "Deno.lstat() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.lstat("foo");
-    await assertRejects(() => Deno.lstat("bar"), Deno.errors.NotFound);
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.lstat(sbox.resolve("foo"));
+    await assertRejects(
+      () => Deno.lstat(sbox.resolve("bar")),
+      Deno.errors.NotFound,
+    );
   },
 });
 
@@ -93,10 +61,10 @@ Deno.test({
   ignore: Deno.build.os == "windows",
   name: "Deno.chmod() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.chmod("foo", 0o700);
-    const s = await Deno.lstat("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.chmod(sbox.resolve("foo"), 0o700);
+    const s = await Deno.lstat(sbox.resolve("foo"));
     assertEquals((s.mode ?? 0) & 0o777, 0o700);
   },
 });
@@ -107,10 +75,10 @@ Deno.test({
   fn: async () => {
     const uid = 10000;
     const gid = 10000;
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.chown("foo", uid, gid);
-    const s = await Deno.lstat("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.chown(sbox.resolve("foo"), uid, gid);
+    const s = await Deno.lstat(sbox.resolve("foo"));
     assertEquals(s.uid, uid);
     assertEquals(s.gid, gid);
   },
@@ -119,11 +87,11 @@ Deno.test({
 Deno.test({
   name: "Deno.copyFile() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.copyFile("foo", "bar");
-    assertExists("foo");
-    assertExists("bar");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.copyFile(sbox.resolve("foo"), sbox.resolve("bar"));
+    assertExists(sbox.resolve("foo"));
+    assertExists(sbox.resolve("bar"));
   },
 });
 
@@ -131,12 +99,12 @@ Deno.test({
   ignore: Deno.build.os == "windows",
   name: "Deno.link() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.link("foo", "bar");
-    assertExists("foo");
-    assertExists("bar");
-    const s = await Deno.lstat("bar");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.link(sbox.resolve("foo"), sbox.resolve("bar"));
+    assertExists(sbox.resolve("foo"));
+    assertExists(sbox.resolve("bar"));
+    const s = await Deno.lstat(sbox.resolve("bar"));
     assertEquals(s.isFile, true);
     assertEquals(s.nlink, 2);
   },
@@ -145,10 +113,10 @@ Deno.test({
 Deno.test({
   name: "Deno.mkdir() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await Deno.mkdir("foo");
-    assertExists("foo");
-    const s = await Deno.lstat("foo");
+    await using sbox = await sandbox();
+    await Deno.mkdir(sbox.resolve("foo"));
+    assertExists(sbox.resolve("foo"));
+    const s = await Deno.lstat(sbox.resolve("foo"));
     assertEquals(s.isDirectory, true);
   },
 });
@@ -156,9 +124,9 @@ Deno.test({
 Deno.test({
   name: "Deno.open() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await using f = await Deno.open("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await using f = await Deno.open(sbox.resolve("foo"));
     const s = await f.stat();
     assertEquals(s.isFile, true);
   },
@@ -167,12 +135,12 @@ Deno.test({
 Deno.test({
   name: "Deno.readDir() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _a = await Deno.create("alpha");
-    await using _b = await Deno.create("beta");
-    await using _c = await Deno.create("gamma");
+    await using sbox = await sandbox();
+    await using _a = await Deno.create(sbox.resolve("alpha"));
+    await using _b = await Deno.create(sbox.resolve("beta"));
+    await using _c = await Deno.create(sbox.resolve("gamma"));
     const items: Deno.DirEntry[] = [];
-    for await (const item of Deno.readDir(".")) {
+    for await (const item of Deno.readDir(sbox.path)) {
       items.push(item);
     }
     assertEquals(items.sort((a, b) => a.name.localeCompare(b.name)), [
@@ -201,10 +169,10 @@ Deno.test({
 Deno.test({
   name: "Deno.readFile() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.writeFile("foo", new Uint8Array([0, 1, 2]));
-    const content = await Deno.readFile("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.writeFile(sbox.resolve("foo"), new Uint8Array([0, 1, 2]));
+    const content = await Deno.readFile(sbox.resolve("foo"));
     assertEquals(content, new Uint8Array([0, 1, 2]));
   },
 });
@@ -212,20 +180,20 @@ Deno.test({
 Deno.test({
   name: "Deno.readLink() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.symlink("foo", "bar");
-    assertEquals(await Deno.readLink("bar"), "foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.symlink("foo", sbox.resolve("bar"));
+    assertEquals(await Deno.readLink(sbox.resolve("bar")), "foo");
   },
 });
 
 Deno.test({
   name: "Deno.readTextFile() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.writeTextFile("foo", "Hello");
-    const content = await Deno.readTextFile("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.writeTextFile(sbox.resolve("foo"), "Hello");
+    const content = await Deno.readTextFile(sbox.resolve("foo"));
     assertEquals(content, "Hello");
   },
 });
@@ -233,12 +201,12 @@ Deno.test({
 Deno.test({
   name: "Deno.realPath() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.symlink("foo", "bar");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.symlink("foo", sbox.resolve("bar"));
     assertEquals(
-      await Deno.realPath("foo"),
-      await Deno.realPath("bar"),
+      await Deno.realPath(sbox.resolve("foo")),
+      await Deno.realPath(sbox.resolve("bar")),
     );
   },
 });
@@ -246,22 +214,22 @@ Deno.test({
 Deno.test({
   name: "Deno.remove() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.remove("foo");
-    assertNotExists("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.remove(sbox.resolve("foo"));
+    assertNotExists(sbox.resolve("foo"));
   },
 });
 
 Deno.test({
   name: "Deno.rename() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.rename("foo", "bar");
-    assertNotExists("foo");
-    assertExists("bar");
-    const s = await Deno.lstat("bar");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.rename(sbox.resolve("foo"), sbox.resolve("bar"));
+    assertNotExists(sbox.resolve("foo"));
+    assertExists(sbox.resolve("bar"));
+    const s = await Deno.lstat(sbox.resolve("bar"));
     assertEquals(s.isFile, true);
   },
 });
@@ -269,9 +237,9 @@ Deno.test({
 Deno.test({
   name: "Deno.stat() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    const s = await Deno.stat("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    const s = await Deno.stat(sbox.resolve("foo"));
     assertEquals(s.isFile, true);
   },
 });
@@ -279,10 +247,10 @@ Deno.test({
 Deno.test({
   name: "Deno.symlink() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.symlink("foo", "bar");
-    const s = await Deno.lstat("bar");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.symlink("foo", sbox.resolve("bar"));
+    const s = await Deno.lstat(sbox.resolve("bar"));
     assertEquals(s.isSymlink, true);
   },
 });
@@ -290,10 +258,10 @@ Deno.test({
 Deno.test({
   name: "Deno.writeFile() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.writeFile("foo", new Uint8Array([0, 1, 2]));
-    const content = await Deno.readFile("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.writeFile(sbox.resolve("foo"), new Uint8Array([0, 1, 2]));
+    const content = await Deno.readFile(sbox.resolve("foo"));
     assertEquals(content, new Uint8Array([0, 1, 2]));
   },
 });
@@ -301,10 +269,10 @@ Deno.test({
 Deno.test({
   name: "Deno.writeTextFile() performs its operation in a sandbox directory",
   fn: async () => {
-    await using _sbox = await sandbox();
-    await using _f = await Deno.create("foo");
-    await Deno.writeTextFile("foo", "Hello");
-    const content = await Deno.readTextFile("foo");
+    await using sbox = await sandbox();
+    await using _f = await Deno.create(sbox.resolve("foo"));
+    await Deno.writeTextFile(sbox.resolve("foo"), "Hello");
+    const content = await Deno.readTextFile(sbox.resolve("foo"));
     assertEquals(content, "Hello");
   },
 });
