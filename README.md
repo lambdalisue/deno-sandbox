@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/lambdalisue/deno-sandbox/graph/badge.svg?token=AEZJlup3Et)](https://codecov.io/gh/lambdalisue/deno-sandbox)
 
 This module provides `sandbox()` and `sandboxSync()` function to create a
-temporary sandbox directory and temporary move into it.
+temporary sandbox directory.
 
 ## Usage
 
@@ -14,18 +14,24 @@ import { sandbox, sandboxSync } from "@lambdalisue/sandbox";
 
 {
   await using sbox = await sandbox();
-  // The current working directory is changed to the sandbox directory here.
-  // Do what ever you want
+  // Create files in the sandbox directory using sbox.resolve()
+  await Deno.writeTextFile(sbox.resolve("foo.txt"), "Hello");
+  const content = await Deno.readTextFile(sbox.resolve("foo.txt"));
 }
-// The current working directory is changed back to the original directory here.
+// The sandbox directory is automatically removed here
 
 {
   using sbox = sandboxSync();
-  // The current working directory is changed to the sandbox directory here.
-  // Do what ever you want
+  // Create files in the sandbox directory using sbox.resolve()
+  Deno.writeTextFileSync(sbox.resolve("bar.txt"), "World");
+  const content = Deno.readTextFileSync(sbox.resolve("bar.txt"));
 }
-// The current working directory is changed back to the original directory here.
+// The sandbox directory is automatically removed here
 ```
+
+**Note**: This module does not change the current working directory. This design
+allows parallel test execution without interference. Use `sbox.resolve(path)` to
+get absolute paths within the sandbox directory.
 
 ## License
 
