@@ -1,7 +1,7 @@
 name: Test
 
 env:
-  DENO_VERSION: 1.x
+  DENO_VERSION: 2.x
 
 on:
   push:
@@ -14,8 +14,8 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
         with:
           deno-version: ${{ env.DENO_VERSION }}
       - name: Format
@@ -29,8 +29,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
         with:
           deno-version: ${{ env.DENO_VERSION }}
       - name: Test
@@ -39,19 +39,8 @@ jobs:
         timeout-minutes: 5
       - run: |
           deno task coverage --lcov > coverage.lcov
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           os: ${{ runner.os }}
           files: ./coverage.lcov
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  jsr-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: ${{ env.DENO_VERSION }}
-      - name: Publish (dry-run)
-        run: |
-          deno publish --dry-run
