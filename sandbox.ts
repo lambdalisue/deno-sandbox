@@ -6,9 +6,22 @@ export type Sandbox = {
    */
   readonly path: string;
   /**
-   * Resolve a path relative to the sandbox directory
+   * Resolve path segments relative to the sandbox directory.
+   * Works like `@std/path/resolve`, joining all path segments from left to right.
+   *
+   * @param pathSegments - Path segments to resolve
+   * @returns The resolved absolute path within the sandbox
+   *
+   * @example
+   * ```ts
+   * import { sandbox } from "@lambdalisue/sandbox";
+   *
+   * await using sbox = await sandbox();
+   * sbox.resolve("foo", "bar", "baz.txt");
+   * // => "/tmp/sandbox-xxx/foo/bar/baz.txt"
+   * ```
    */
-  resolve(path: string): string;
+  resolve(...pathSegments: string[]): string;
 };
 
 /**
@@ -79,8 +92,8 @@ export async function sandbox(): Promise<Sandbox & AsyncDisposable> {
   const path = await Deno.realPath(await Deno.makeTempDir());
   return {
     path,
-    resolve: (relativePath: string) => {
-      return resolve(path, relativePath);
+    resolve: (...pathSegments: string[]) => {
+      return resolve(path, ...pathSegments);
     },
     [Symbol.asyncDispose]: async () => {
       try {
@@ -160,8 +173,8 @@ export function sandboxSync(): Sandbox & Disposable {
   const path = Deno.realPathSync(Deno.makeTempDirSync());
   return {
     path,
-    resolve: (relativePath: string) => {
-      return resolve(path, relativePath);
+    resolve: (...pathSegments: string[]) => {
+      return resolve(path, ...pathSegments);
     },
     [Symbol.dispose]: () => {
       try {

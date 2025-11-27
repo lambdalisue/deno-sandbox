@@ -276,3 +276,25 @@ Deno.test({
     assertEquals(content, "Hello");
   },
 });
+
+Deno.test({
+  name: "Sandbox.resolve() supports multiple path arguments",
+  fn: async () => {
+    await using sbox = await sandbox();
+    await Deno.mkdir(sbox.resolve("foo"));
+    await Deno.mkdir(sbox.resolve("foo", "bar"));
+    await using _f = await Deno.create(sbox.resolve("foo", "bar", "baz.txt"));
+    assertExists(sbox.resolve("foo", "bar", "baz.txt"));
+  },
+});
+
+Deno.test({
+  name: "SandboxSync.resolve() supports multiple path arguments",
+  fn: () => {
+    using sbox = sandboxSync();
+    Deno.mkdirSync(sbox.resolve("foo"));
+    Deno.mkdirSync(sbox.resolve("foo", "bar"));
+    using _f = Deno.createSync(sbox.resolve("foo", "bar", "baz.txt"));
+    assertExists(sbox.resolve("foo", "bar", "baz.txt"));
+  },
+});
